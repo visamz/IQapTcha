@@ -4,7 +4,7 @@
  *
  * @package IQapTcha
  * @author Byends
- * @version 1.0.0
+ * @version 1.1.0
  * @link http://www.byends.com
  */
 class IQapTcha_Plugin implements Typecho_Plugin_Interface
@@ -80,25 +80,31 @@ class IQapTcha_Plugin implements Typecho_Plugin_Interface
 		$form->addInput($opt_jq_set);
 
 		//IQapTcha 配置
+		$opt_admin_unlock = new Typecho_Widget_Helper_Form_Element_Radio('opt_admin_unlock', array("true" => "是", "false" => "否"), "false", _t('博主是否无须上锁'), '若选择 【是】，博主登录后 IQapTcha 将不再显示，且不进行相应的 session 检验');
+		$form->addInput($opt_admin_unlock);
+
+		$opt_autoSubmit = new Typecho_Widget_Helper_Form_Element_Radio('opt_autoSubmit', array("true" => "是", "false" => "否"), "false", _t('解锁后立即提交评论'), '若选择 【是】，IQapTcha 解锁后将立即自动提交评论');
+		$form->addInput($opt_autoSubmit);
+
 		$opt_lock_txt = new Typecho_Widget_Helper_Form_Element_Text('opt_lock_txt', NULL, '发表评论前，请滑动滚动条解锁', _t('IQapTcha 解锁前的提示'));
-		$form->addInput($opt_lock_txt);
+		$form->addInput( $opt_lock_txt->addRule('required', _t('IQapTcha 解锁前的提示不能为空')) );
 
 		$opt_unlock_txt = new Typecho_Widget_Helper_Form_Element_Text('opt_unlock_txt', NULL, '已解锁，可以发表评论了', _t('IQapTcha 解锁后的提示'));
-		$form->addInput($opt_unlock_txt);
-
-		$opt_disabledSubmit = new Typecho_Widget_Helper_Form_Element_Radio('opt_disabledSubmit', array("false" => "是", "true" => "否"), "false", _t('提交按钮是否可用'), 'IQapTcha 未解锁时，评论提交按钮是否可用');
-		$form->addInput($opt_disabledSubmit);
+		$form->addInput( $opt_unlock_txt->addRule('required', _t('IQapTcha 解锁后的提示不能为空')) );
 
 		$opt_autoRevert = new Typecho_Widget_Helper_Form_Element_Radio('opt_autoRevert', array("true" => "是", "false" => "否"), "true", _t('滚动条是否自动回滚'), '在拖动 IQapTcha 滚动条中途释放时，滚动条是否自动回滚');
 		$form->addInput($opt_autoRevert);
+
+		$opt_disabledSubmit = new Typecho_Widget_Helper_Form_Element_Radio('opt_disabledSubmit', array("false" => "是", "true" => "否"), "false", _t('提交按钮是否可用'), 'IQapTcha 未解锁时，评论提交按钮是否可用');
+		$form->addInput($opt_disabledSubmit);
 
 		//屏蔽IP操作
         $opt_ip = new Typecho_Widget_Helper_Form_Element_Radio('opt_ip', array("none" => "无动作", "waiting" => "标记为待审核", "spam" => "标记为垃圾", "abandon" => "评论失败"), "abandon",
 			_t('屏蔽IP操作'), "如果评论发布者的IP在屏蔽IP段，将执行该操作");
         $form->addInput($opt_ip);
 
-        $opt_ip_txt = new Typecho_Widget_Helper_Form_Element_Text('opt_ip_txt', NULL, '你的IP已被管理员屏蔽！', _t('屏蔽IP后的提示信息'), _t('仅当屏蔽IP操作为 【评论失败】 时有效'));
-        $form->addInput($opt_ip_txt);
+        $opt_ip_txt = new Typecho_Widget_Helper_Form_Element_Text('opt_ip_txt', NULL, '你的IP已被管理员屏蔽！', _t('屏蔽IP后的提示'), _t('仅当屏蔽IP操作为 【评论失败】 时有效'));
+        $form->addInput( $opt_ip_txt->addRule('required', _t('屏蔽IP后的提示不能为空')) );
 
         $words_ip = new Typecho_Widget_Helper_Form_Element_Textarea('words_ip', NULL, "0.0.0.0",
 			_t('屏蔽IP'), _t('多条IP请用换行符隔开<br />支持用*号匹配IP段，如：192.168.*.*'));
@@ -109,16 +115,16 @@ class IQapTcha_Plugin implements Typecho_Plugin_Interface
 			_t('非中文评论操作'), "如果评论中不包含中文，则强行按该操作执行");
         $form->addInput($opt_nocn);
 
-        $opt_nocn_txt = new Typecho_Widget_Helper_Form_Element_Text('opt_nocn_txt', NULL, '评论内容不能少于2个汉字！', _t('非中文评论的提示信息'), _t('仅当非中文评论操作为 【评论失败】 时有效'));
-        $form->addInput($opt_nocn_txt);
+        $opt_nocn_txt = new Typecho_Widget_Helper_Form_Element_Text('opt_nocn_txt', NULL, '评论内容不能少于2个汉字！', _t('非中文评论的提示'), _t('仅当非中文评论操作为 【评论失败】 时有效'));
+        $form->addInput( $opt_nocn_txt->addRule('required', _t('非中文评论的提示不能为空')) );
 
 		//禁止词汇操作
         $opt_ban = new Typecho_Widget_Helper_Form_Element_Radio('opt_ban', array("none" => "无动作", "waiting" => "标记为待审核", "spam" => "标记为垃圾", "abandon" => "评论失败"), "abandon",
 			_t('禁止词汇操作'), "如果评论中包含禁止词汇列表中的词汇，将执行该操作");
         $form->addInput($opt_ban);
 
-        $opt_ban_txt = new Typecho_Widget_Helper_Form_Element_Text('opt_ban_txt', NULL, '评论内容包含禁止词汇！', _t('禁止词汇后的提示信息'), _t('仅当禁止词汇操作为 【评论失败】 时有效'));
-        $form->addInput($opt_ban_txt);
+        $opt_ban_txt = new Typecho_Widget_Helper_Form_Element_Text('opt_ban_txt', NULL, '评论内容包含禁止词汇！', _t('禁止词汇后的提示'), _t('仅当禁止词汇操作为 【评论失败】 时有效'));
+        $form->addInput( $opt_ban_txt->addRule('required', _t('禁止词汇后的提示不能为空')) );
 
         $words_ban = new Typecho_Widget_Helper_Form_Element_Textarea('words_ban', NULL, "fuck\n操你妈\n[url\n[/url]",
 			_t('禁止词汇'), _t('多条词汇请用换行符隔开'));
@@ -129,8 +135,8 @@ class IQapTcha_Plugin implements Typecho_Plugin_Interface
 			_t('敏感词汇操作'), "如果评论中包含敏感词汇列表中的词汇，将执行该操作");
         $form->addInput($opt_chk);
 
-        $opt_chk_txt = new Typecho_Widget_Helper_Form_Element_Text('opt_chk_txt', NULL, '评论内容包含敏感词汇！', _t('敏感词汇操作后的提示信息'), _t('仅当敏感词汇操作为 【评论失败】 时有效'));
-        $form->addInput($opt_chk_txt);
+        $opt_chk_txt = new Typecho_Widget_Helper_Form_Element_Text('opt_chk_txt', NULL, '评论内容包含敏感词汇！', _t('包含敏感词汇的提示'), _t('仅当敏感词汇操作为 【评论失败】 时有效'));
+        $form->addInput( $opt_chk_txt->addRule('required', _t('包含敏感词汇的提示不能为空')) );
 
         $words_chk = new Typecho_Widget_Helper_Form_Element_Textarea('words_chk', NULL, "http://",
 			_t('敏感词汇'), _t('多条词汇请用换行符隔开<br />注意：如果词汇同时出现于禁止词汇，则执行禁止词汇操作'));
@@ -156,12 +162,18 @@ class IQapTcha_Plugin implements Typecho_Plugin_Interface
     {
     	if (Typecho_Widget::widget('Widget_Archive')->is('single')) {
 
+    		$user = Typecho_Widget::widget('Widget_User');
     		$options = Helper::options();
     		$iQapTchaOpt = $options->plugin('IQapTcha');
 
-	    	if ($iQapTchaOpt->opt_jq_set == 1) {
-	    		echo "<script type=\"text/javascript\" src=\"http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js\"></script>\n";
-	    	}
+    		if( $iQapTchaOpt->opt_admin_unlock == 'false' || !($user->hasLogin() && $user->pass('administrator'))) {
+
+    			$pluginUrl = Typecho_Common::url('IQapTcha/static', $options->pluginUrl);
+		    	if ($iQapTchaOpt->opt_jq_set == 1) {
+		    		echo "<script type=\"text/javascript\" src=\"http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js\"></script>\n";
+		    	}
+		    	echo '<link rel="stylesheet" type="text/css" media="all" href="'.$pluginUrl.'/QapTcha.jquery.css" />'."\n";
+    		}
     	}
     }
 
@@ -175,17 +187,20 @@ class IQapTcha_Plugin implements Typecho_Plugin_Interface
     {
     	if (Typecho_Widget::widget('Widget_Archive')->is('single')) {
 
+    		$user = Typecho_Widget::widget('Widget_User');
     		$options = Helper::options();
     		$iQapTchaOpt = $options->plugin('IQapTcha');
-    		$pluginUrl = Typecho_Common::url('IQapTcha/static', $options->pluginUrl);
-    		$url = Typecho_Router::url('iQapTcha4tyepcho', array(), $options->index);
-    		$action = self::getCheckStr('action');
 
-	    	$script = <<<EOT
+    		if( $iQapTchaOpt->opt_admin_unlock == 'false' || !($user->hasLogin() && $user->pass('administrator'))) {
+
+	    		$pluginUrl = Typecho_Common::url('IQapTcha/static', $options->pluginUrl);
+	    		$url = Typecho_Router::url('iQapTcha4tyepcho', array(), $options->index);
+	    		$action = self::getCheckStr('action');
+
+	    		$script = <<<EOT
 \n<script type="text/javascript" src="{$pluginUrl}/jquery-ui.js"></script>
 <script type="text/javascript" src="{$pluginUrl}/jquery.ui.touch.js"></script>
 <script type="text/javascript" src="{$pluginUrl}/QapTcha.jquery.js"></script>
-<link rel="stylesheet" type="text/css" media="all" href="{$pluginUrl}/QapTcha.jquery.css" />
 <script type="text/javascript">
 $(document).ready(function(){
 	if (!$('#QapTcha').is('div')) {
@@ -196,13 +211,15 @@ $(document).ready(function(){
 		txtUnlock : '{$iQapTchaOpt->opt_unlock_txt}',
 		disabledSubmit : {$iQapTchaOpt->opt_disabledSubmit},
 		autoRevert: {$iQapTchaOpt->opt_autoRevert},
+		autoSubmit : {$iQapTchaOpt->opt_autoSubmit},
 		url : '{$url}',
 		action  : '{$action}'
 	});
 });
 </script>
 EOT;
-    		echo $script;
+    			echo $script;
+    		}
     	}
     }
 
@@ -212,6 +229,7 @@ EOT;
      */
     public static function filter($comment, $post)
     {
+    	$user = Typecho_Widget::widget('Widget_User');
         $options = Helper::options();
 		$iQapTchaOpt = $options->plugin('IQapTcha');
 		$opt = 'none';
@@ -219,9 +237,12 @@ EOT;
 		$action = self::getCheckStr('action');
 		$req = Typecho_Request::getInstance();
 
-		@session_start();
-		if (!isset($_SESSION[$action]) || !$_SESSION[$action] || !$req->is('iQapTcha='.$_SESSION[$action]) ) {
-			throw new Typecho_Widget_Exception($iQapTchaOpt->opt_lock_txt);
+		//登录检测，session 检测
+		if( $iQapTchaOpt->opt_admin_unlock == 'false' || !($user->hasLogin() && $user->pass('administrator'))) {
+			@session_start();
+			if (!isset($_SESSION[$action]) || !$_SESSION[$action] || !$req->is('iQapTcha='.$_SESSION[$action]) ) {
+				throw new Typecho_Widget_Exception($iQapTchaOpt->opt_lock_txt);
+			}
 		}
 
 		//屏蔽IP段处理

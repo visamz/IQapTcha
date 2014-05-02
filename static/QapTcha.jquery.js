@@ -14,8 +14,9 @@ jQuery.QapTcha = {
         var defaults = {
 			txtLock : '发表评论前，请滑动滚动条解锁',
 			txtUnlock : '已解锁，可以发表评论了',
-			disabledSubmit : true,
+			disabledSubmit : false,
 			autoRevert : true,
+			autoSubmit : false,
 			url : '/iQapTcha4tyepcho',
 			action : 'iQapTcha4tyepcho'
         };   
@@ -73,6 +74,7 @@ jQuery.QapTcha = {
 								TxtStatus.text(opts.txtUnlock).addClass('dropSuccess').removeClass('dropError');
 								Icons.css('background-position', '-16px 0');
 								form.find('input[type=\'submit\']').removeAttr('disabled');
+								if(opts.autoSubmit) form.find('input[type=\'submit\']').trigger('click');
 							}
 						},'json');
 					}
